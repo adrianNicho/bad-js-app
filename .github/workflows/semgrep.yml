@@ -1,24 +1,40 @@
+# This section specifies when the workflow should be triggered.
 on:
+  # Scan on-demand through GitHub Actions interface:
   workflow_dispatch: {}
+  # Scan changed files in PRs (diff-aware scanning):
   pull_request: {}
+  # Scan mainline branches if there are changes to .github/workflows/semgrep.yml:
   push:
     branches:
     - main
     - master
     paths:
     - .github/workflows/semgrep.yml
-  schedule:
-  # random HH:MM to avoid a load spike on GitHub Actions at 00:00
-  - cron: 30 0 * * *
+  # Schedule the CI job (this method uses cron syntax):
+    schedule:
+      # random HH:MM to avoid a load spike on GitHub Actions at 00:00
+      # Sets Semgrep to scan every day at 00:30 UTC.
+      - cron: 30 0 * * *
+
+# Name of this GitHub Actions workflow.
 name: Semgrep
+# This section defines the jobs that the workflow will run.
 jobs:
   semgrep:
+    # User definable name of this GitHub Actions job.
     name: semgrep/ci
+    # This specifies the type of runner that the job will run on
     runs-on: ubuntu-20.04
+    # This section is used to set environment variables.
     env:
+      # Connect to Semgrep AppSec Platform through your SEMGREP_APP_TOKEN.
       SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
     container:
+      # A Docker image with Semgrep installed. Do not change this.
       image: returntocorp/semgrep
     steps:
+    # Fetch project source with GitHub Actions Checkout. Use either v3 or v4.
     - uses: actions/checkout@v4
+    # Run the "semgrep ci" command on the command line of the docker image.
     - run: semgrep ci
